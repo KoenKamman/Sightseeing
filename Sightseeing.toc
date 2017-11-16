@@ -1,0 +1,6 @@
+## Interface: 70300
+## Title: Sightseeing
+## Author: Faelrir
+## SavedVariables: SightseeingDB
+
+Sightseeing.lua
