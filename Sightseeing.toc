@@ -1,6 +1,11 @@
 ## Interface: 70300
 ## Title: Sightseeing
 ## Author: Faelrir
+## Notes: Custom Map Viewpoints
 ## SavedVariables: SightseeingDB
+## OptionalDeps: Ace3
+## X-Embeds: Ace3
 
-Sightseeing.lua
+embeds.xml
+
+Core.lua
