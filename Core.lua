@@ -1,6 +1,8 @@
 local Sightseeing = LibStub("AceAddon-3.0"):NewAddon("Sightseeing", "AceConsole-3.0", "AceEvent-3.0")
-local Dragons = LibStub("HereBeDragons-1.0")
-local DragonsPins = LibStub("HereBeDragons-Pins-1.0")
+local HBD = LibStub("HereBeDragons-1.0")
+local HBDPins = LibStub("HereBeDragons-Pins-1.0")
+
+local ViewPoints = {}
 
 local options = {
     name = "Sightseeing",
@@ -58,6 +60,25 @@ function Sightseeing:OnInitialize()
     self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Sightseeing", "Sightseeing")
     self.optionsFrame.default = function() self:SetDefaultOptions() end;
     self:RegisterChatCommand("sightseeing", "ChatCommand")
+
+
+    -- Add markers at azuremyst isle & ammen vale for debugging
+    local ViewPoint1 = {}
+    local ViewPoint2 = {}
+
+    ViewPoint1.x = 0.5
+    ViewPoint1.y = 0.5
+    ViewPoint1.mapId = 894
+    ViewPoint1.level = 0
+
+    ViewPoint2.x = 0.8
+    ViewPoint2.y = 0.8
+    ViewPoint2.mapId = 464
+    ViewPoint2.level = 0
+
+    table.insert(ViewPoints, ViewPoint1)
+    table.insert(ViewPoints, ViewPoint2)
+
 end
 
 function Sightseeing:OnEnable()
@@ -65,25 +86,44 @@ function Sightseeing:OnEnable()
     self:RegisterEvent("WORLD_MAP_UPDATE")
 end
 
+function Sightseeing:CreateMapIcon()
+
+    icon = CreateFrame("Button", "MapIcon", WorldMapDetailFrame)
+    icon:SetWidth(100)
+    icon:SetHeight(100)
+    icon:SetPoint("CENTER", WorldMapDetailFrame, "CENTER")
+
+    icon.Texture = Icon:CreateTexture(nil,"OVERLAY");
+    icon.Texture:SetTexture("Interface\\Minimap\\UI-QuestBlob-MinimapRing");
+    icon.Texture:SetAllPoints(icon)
+    
+    return icon
+end
+
 function Sightseeing:WORLD_MAP_UPDATE()
-    self:Print('map updated')
+
+    local x, y, currentMapId, level = HBD:GetPlayerZonePosition()
+
+    if not WorldMapDetailFrame:IsVisible() then 
+        return 
+    end
+
+    local areaID = GetCurrentMapAreaID()
+
+    HBDPins:RemoveAllWorldMapIcons("Sightseeing")
+    self:Print('Removing all icons.')
+
+    for index, vp in ipairs(ViewPoints) do
+        if vp.mapId == areaID then
+            local icon = self:CreateMapIcon()
+            HBDPins:AddWorldMapIconMF("Sightseeing", icon, vp.mapId, vp.level, vp.x, vp.y)
+            self:Print('ViewPoint created!')
+        end
+    end
+
 end
 
 function Sightseeing:ZONE_CHANGED()
-
-    -- create a new pin
-	pin = CreateFrame("Button", "--------------------", WorldMapDetailFrame)
-	pin:SetWidth(100)
-	pin:SetHeight(100)
-	pin:SetPoint("CENTER", WorldMapDetailFrame, "CENTER")
-    pin.Texture = pin:CreateTexture(nil,"OVERLAY");
-    pin.Texture:SetTexture("Interface\\Minimap\\UI-QuestBlob-MinimapRing");
-    pin.Texture:SetAllPoints(pin)
-
-    x, y, mapId, level = Dragons:GetPlayerZonePosition()
-
-    DragonsPins:AddWorldMapIconMF("Sightseeing", pin, mapId, level, x, y)
-    self:Print(x .. ' ' .. y .. ' ' .. mapId .. ' ' .. level)
 
     if self.db.profile.showInChat then
         self:Print(self.db.profile.message)
@@ -92,6 +132,7 @@ function Sightseeing:ZONE_CHANGED()
     if self.db.profile.showOnScreen then
         UIErrorsFrame:AddMessage(self.db.profile.message, 1.0, 1.0, 1.0, 5.0)
     end
+
 end
 
 function Sightseeing:GetMessage(info)
